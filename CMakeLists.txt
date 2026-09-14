@@ -1,7 +1,7 @@
 set(CMAKE_BUILD_TYPE "Debug")
 
 cmake_minimum_required(VERSION 3.21)
-project(webgpu-context-sdl3-cpp CXX)
+project(webgpu-context-sdl3-c-cpp-compat CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
