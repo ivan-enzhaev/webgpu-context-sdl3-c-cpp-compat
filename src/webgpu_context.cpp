@@ -51,6 +51,41 @@ WGPUSurface CreateWGPUSurface(WGPUInstance inst, SDL_Window *win)
     };
     WGPUSurfaceDescriptor desc = { .nextInChain = (WGPUChainedStruct *)&androidSource };
     return wgpuInstanceCreateSurface(inst, &desc);
+
+#elif defined(SDL_PLATFORM_LINUX)
+    SDL_PropertiesID props = SDL_GetWindowProperties(win);
+    
+    // Check Wayland first
+    void *wayland_display = SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER, NULL);
+    void *wayland_surface = SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER, NULL);
+
+    if (wayland_display && wayland_surface)
+    {
+        WGPUSurfaceSourceWaylandSurface waylandSource = {
+            .chain = { .sType = WGPUSType_SurfaceSourceWaylandSurface },
+            .display = wayland_display,
+            .surface = wayland_surface
+        };
+        WGPUSurfaceDescriptor desc = { .nextInChain = (WGPUChainedStruct *)&waylandSource };
+        return wgpuInstanceCreateSurface(inst, &desc);
+    }
+
+    // Fall back to X11 (Xlib)
+    void *x11_display = SDL_GetPointerProperty(props, SDL_PROP_WINDOW_X11_DISPLAY_POINTER, NULL);
+    uint64_t x11_window = SDL_GetNumberProperty(props, SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0);
+
+    if (x11_display && x11_window)
+    {
+        WGPUSurfaceSourceXlibWindow x11Source = {
+            .chain = { .sType = WGPUSType_SurfaceSourceXlibWindow },
+            .display = x11_display,
+            .window = x11_window
+        };
+        WGPUSurfaceDescriptor desc = { .nextInChain = (WGPUChainedStruct *)&x11Source };
+        return wgpuInstanceCreateSurface(inst, &desc);
+    }
+
+    return NULL;
 #else
 #error "Platform surface mapping not implemented"
 #endif

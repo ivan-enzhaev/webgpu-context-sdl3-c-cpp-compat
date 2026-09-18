@@ -110,4 +110,28 @@ elseif(WIN32)
     else()
         target_link_options(app PRIVATE -mwindows)
     endif()
+
+else() # Ubuntu
+    set(LIBS_DIR "$ENV{HOME}/libs")
+
+    # SDL3
+    add_library(SDL3_Static STATIC IMPORTED)
+    set_target_properties(SDL3_Static PROPERTIES
+        IMPORTED_LOCATION "${LIBS_DIR}/sdl3-3.4.16-ubuntu/lib/libSDL3.a"
+        INTERFACE_INCLUDE_DIRECTORIES "${LIBS_DIR}/sdl3-3.4.16-ubuntu/include"
+        INTERFACE_LINK_LIBRARIES "pthread;dl;m"
+    )
+
+    # wgpu-native
+    add_library(wgpu_native STATIC IMPORTED)
+    set_target_properties(wgpu_native PROPERTIES
+        IMPORTED_LOCATION "${LIBS_DIR}/wgpu-native-29.0.1.1-ubuntu/lib/libwgpu_native.a"
+        INTERFACE_INCLUDE_DIRECTORIES "${LIBS_DIR}/wgpu-native-29.0.1.1-ubuntu/include"
+        INTERFACE_LINK_LIBRARIES "pthread;dl;m"
+    )
+
+    target_link_libraries(app PRIVATE
+        SDL3_Static
+        wgpu_native
+    )
 endif()
