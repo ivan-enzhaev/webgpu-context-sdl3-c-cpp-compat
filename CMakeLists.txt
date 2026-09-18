@@ -102,8 +102,11 @@ elseif(WIN32)
         wgpu_native
     )
 
-    target_compile_options(app PRIVATE -Os)
-    target_link_options(app PRIVATE -static -s -static-libgcc -static-libstdc++)
+    # Optimize for size and separate code/data sections for dead-code elimination
+    target_compile_options(app PRIVATE -Os -ffunction-sections -fdata-sections)
+
+    # Statically link runtimes, strip symbols, and purge unused sections
+    target_link_options(app PRIVATE -static -s -static-libgcc -static-libstdc++ -Wl,--gc-sections)
 
     if (CMAKE_BUILD_TYPE STREQUAL "Debug")
         target_link_options(app PRIVATE -mconsole)
@@ -134,4 +137,10 @@ else() # Ubuntu
         SDL3_Static
         wgpu_native
     )
+
+    # Enable section separation for dead-code elimination
+    target_compile_options(app PRIVATE -ffunction-sections -fdata-sections)
+
+    # Statically link C/C++ runtimes, strip symbols, and garbage-collect unused sections
+    target_link_options(app PRIVATE -s -static-libgcc -static-libstdc++ -Wl,--gc-sections)
 endif()
